@@ -3,6 +3,7 @@ package pdesigns.com.lastorders.ClientSide;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,7 +22,7 @@ import pdesigns.com.lastorders.provider.SessionManager;
 /**
  * The type Bar profile.
  */
-public class EventProfileActivity extends Fragment {
+public class EventProfileFragment extends Fragment {
 
 
     String rateString;
@@ -50,13 +51,13 @@ public class EventProfileActivity extends Fragment {
     //Ui stuff
 
     TextView txtTitle;
-    TextView txtStart;
     TextView txtcity;
     TextView txtRegion;
     TextView txtAddr;
     TextView txtCOuntry;
     TextView txtCountryAppr;
     TextView txtDesc;
+    TextView txtStart;
 
     Bar b;
     SessionManager session;
@@ -80,15 +81,16 @@ public class EventProfileActivity extends Fragment {
 
         // To retrieve object in second Activity
 
-        View rowView = inflater.inflate(R.layout.fragment_bar_profile, null, true);
+        View rowView = inflater.inflate(R.layout.event_profile, null, true);
 
-        txtTitle = (TextView) rowView.findViewById(R.id.event_ptitle);
+        txtTitle = (TextView) rowView.findViewById(R.id.eventNameP);
         txtStart = (TextView) rowView.findViewById(R.id.event_start_time);
         txtAddr = (TextView) rowView.findViewById(R.id.event_venue_address);
         txtcity = (TextView) rowView.findViewById(R.id.event_city_name);
         txtRegion = (TextView) rowView.findViewById(R.id.event_region_name);
         txtCOuntry = (TextView) rowView.findViewById(R.id.event_country_name);
-        txtCountryAppr = (TextView) rowView.findViewById(R.id.event_country_abbr);
+        txtCountryAppr = (TextView) rowView.findViewById(R.id.event_country_appb);
+        txtStart = (TextView) rowView.findViewById(R.id.event_start_time);
         txtDesc = (TextView) rowView.findViewById(R.id.event_description);
 
         txtTitle.setText(eventO.getTitle());
@@ -97,7 +99,8 @@ public class EventProfileActivity extends Fragment {
         txtRegion.setText(eventO.getRegionName());
         txtCOuntry.setText(eventO.getCountryName());
         txtCountryAppr.setText(eventO.getCountryAbbr());
-        txtDesc.setText(eventO.getDescription());
+        txtStart.setText(eventO.getStartTime());
+        txtDesc.setText(Html.fromHtml(eventO.getDescription()));
 
 
         HashMap<String, String> user = session.getUserDetails();

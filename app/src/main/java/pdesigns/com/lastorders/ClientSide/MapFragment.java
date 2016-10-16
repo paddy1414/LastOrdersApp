@@ -1,6 +1,7 @@
 package pdesigns.com.lastorders.ClientSide;
 
 
+import android.location.Location;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -19,6 +20,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import pdesigns.com.lastorders.DTO.Bar;
+import pdesigns.com.lastorders.DTO.Event;
 import pdesigns.com.lastorders.R;
 import pdesigns.com.lastorders.provider.GPSTracker;
 
@@ -34,11 +36,17 @@ public class MapFragment extends Fragment implements View.OnClickListener {
     /**
      * The Bar o.
      */
-    Bar barO;
+    Object orea;
     /**
      * The Gps.
      */
-// GPSTracker class
+
+    String longA;
+    String lat;
+
+    MarkerOptions marker;
+
+    // GPSTracker class
     GPSTracker gps;
     private GoogleMap googleMap;
     private Button btnChange;
@@ -56,13 +64,32 @@ public class MapFragment extends Fragment implements View.OnClickListener {
         gps = new GPSTracker(this.getActivity());
 
         mMapView.onResume();// needed to get the map to display immediately
-        barO = (Bar) getActivity().getIntent().getExtras().get("barzzz");
+        if (!(getActivity().getIntent().getExtras().get("barzzz").equals(""))) {
+            orea = (Bar) getActivity().getIntent().getExtras().get("barzzz");
 
-        // latitude and longitude
-        String mapsLoc = barO.getBarLocale();
-        int comma = mapsLoc.indexOf(",");
-        String longA = mapsLoc.substring(0, comma - 1);
-        String lat = mapsLoc.substring(comma + 1, mapsLoc.length() - 1);
+            Bar barO = (Bar) orea;
+            // latitude and longitude
+            String mapsLoc = barO.getBarLocale();
+            int comma = mapsLoc.indexOf(",");
+             longA = mapsLoc.substring(0, comma - 1);
+             lat = mapsLoc.substring(comma + 1, mapsLoc.length() - 1);
+
+            // create marker
+             marker = new MarkerOptions().position(
+                    new LatLng(Double.parseDouble(longA), Double.parseDouble(lat))).title(barO.getBarName());
+            marker.snippet(barO.getPhoneNo());
+        } else {
+            orea = (Event) getActivity().getIntent().getExtras().get("eventszzz");
+
+            Event loca = (Event) orea;
+            // latitude and longitude
+             longA = loca.getLonga();
+             lat = loca.getLata();
+
+            // create marker
+             marker = new MarkerOptions().position(
+                    new LatLng(Double.parseDouble(longA), Double.parseDouble(lat))).title(loca.getTitle());
+        }
 
         try {
             MapsInitializer.initialize(getActivity().getApplicationContext());
@@ -84,10 +111,7 @@ public class MapFragment extends Fragment implements View.OnClickListener {
                     .defaultMarker(BitmapDescriptorFactory.HUE_BLUE));
             googleMap.addMarker(yourlocation);
         }
-        // create marker
-        MarkerOptions marker = new MarkerOptions().position(
-                new LatLng(Double.parseDouble(longA), Double.parseDouble(lat))).title(barO.getBarName());
-        marker.snippet(barO.getPhoneNo());
+
 
         double log = 2.2522222;
 

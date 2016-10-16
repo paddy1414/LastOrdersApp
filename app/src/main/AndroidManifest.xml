@@ -104,6 +104,16 @@
 
         </activity>
 
+        <activity
+            android:name=".ClientSide.EventMainViewActivity"
+            android:label="Event Details"
+            android:parentActivityName=".ClientSide.FirstViewActivity"
+            android:theme="@style/AppTheme.NoActionBar">
+
+        </activity>
+
     </application>
+
+
 
 </manifest>

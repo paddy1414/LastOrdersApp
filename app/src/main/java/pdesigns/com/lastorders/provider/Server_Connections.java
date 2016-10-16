@@ -8,7 +8,7 @@ public class Server_Connections {
     /**
      * The constant for base Server
      */
-    public static String SERVER = "http://192.168.1.6/lastorders_webstuff/";
+    public static String SERVER = "http://192.168.1.1/lastorders_webstuff/";
 
     /**
      * The constant for Server user login url.

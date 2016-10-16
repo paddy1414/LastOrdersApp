@@ -291,9 +291,10 @@ public class AllEventsAroundYouFragment extends Fragment implements Serializable
         Log.d("list item selected was ", 1 + "");
 
         Log.d("The Dbb Array", mStrings.toString());
-        Intent itents = new Intent(getActivity(), BarMainViewActivity.class);
-        itents.putExtra("barzzz", mStrings.get(i));
-        startActivity(itents);
+        Intent intent = new Intent(getActivity(), EventMainViewActivity.class);
+        intent.putExtra("eventszzz", mStrings.get(i));
+        intent.putExtra("barzzz", "");
+        startActivity(intent);
     }
 
     @Override
@@ -384,8 +385,9 @@ public class AllEventsAroundYouFragment extends Fragment implements Serializable
                     Log.d("startTime", startTime);
                     String description = c.getString(TAG_DESCRIPTION);
                     Log.d("description", description);
-                    String longa = c.getString(TAG_LONG);
-                    String lata = c.getString(TAG_LAT);
+                    String lata = c.getString(TAG_LONG);
+                    String longa = c.getString(TAG_LAT);
+
                     Log.d("lata", lata);
                     String address = c.getString(TAG_ADDR);
                     Log.d("address", address);
@@ -397,8 +399,8 @@ public class AllEventsAroundYouFragment extends Fragment implements Serializable
 
                     Location loc2 = new Location("");
                     //   40.7128° N, 74.0059° W
-                    loc2.setLatitude(Double.parseDouble(lat));
-                    loc2.setLongitude(Double.parseDouble(longA));
+                    loc2.setLatitude(Double.parseDouble(longA));
+                    loc2.setLongitude(Double.parseDouble(lat));
                     Log.d("Location", loc2 + "");
                     Integer distanceInMeters = Math.round(loc1.distanceTo(loc2) / 1000);
                     Log.d("Distanfe", distanceInMeters + "");
