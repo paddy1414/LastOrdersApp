@@ -2,38 +2,42 @@
 
 
 
-class DB_Functions {
-
+class DB_Functions
+{
+    
     private $conn;
-
+    
     // constructor
-    function __construct() {
+    function __construct()
+    {
         require_once 'DB_Connect.php';
         // connecting to database
-        $db = new Db_Connect();
+        $db         = new Db_Connect();
         $this->conn = $db->connect();
     }
-
+    
     // destructor
-    function __destruct() {
+    function __destruct()
+    {
         
     }
-
+    
     /**
      * Storing new user
      * returns user details
      */
-        public function storeUser($fName, $lName, $email, $password) {
-        $uuid = uniqid('', true);
-        $hash = $this->hashSSHA($password);
+    public function storeUser($fName, $lName, $email, $password)
+    {
+        $uuid               = uniqid('', true);
+        $hash               = $this->hashSSHA($password);
         $encrypted_password = $hash["encrypted"]; // encrypted password
-        $salt = $hash["salt"]; // salt
-
-     $stmt = $this->conn->prepare("INSERT INTO user(unique_id, fName, lName, email, uPassword, salt) VALUES(?, ?, ?, ?, ?, ?)");
+        $salt               = $hash["salt"]; // salt
+        
+        $stmt = $this->conn->prepare("INSERT INTO user(unique_id, fName, lName, email, uPassword, salt) VALUES(?, ?, ?, ?, ?, ?)");
         $stmt->bind_param("ssssss", $uuid, $fName, $lName, $email, $encrypted_password, $salt);
         $result = $stmt->execute();
         $stmt->close();
-
+        
         // check for successful store
         if ($result) {
             $stmt = $this->conn->prepare("SELECT * FROM user WHERE email = ?");
@@ -41,39 +45,42 @@ class DB_Functions {
             $stmt->execute();
             $user = $stmt->get_result()->fetch_assoc();
             $stmt->close();
-
+            
             return $user;
         } else {
             return false;
         }
     }
-	
-	 public function storeComment($barId, $userId, $comment) {
-     $stmt = $this->conn->prepare("INSERT INTO comments(barId, userId, commentText) VALUES(?, ?, ?)");
+    
+    public function storeComment($barId, $userId, $comment)
+    {
+        $stmt = $this->conn->prepare("INSERT INTO comments(barId, userId, commentText) VALUES(?, ?, ?)");
         $stmt->bind_param("iss", $barId, $userId, $comment);
         $result = $stmt->execute();
         $stmt->close();
-
+        
         // check for successful store
         if ($result) {
             $stmt = $this->conn->prepare("SELECT * FROM comments WHERE barId = ? and userId= ? ");
             $stmt->bind_param("is", $barId, $userId);
             $stmt->execute();
             $comment = $stmt->get_result()->fetch_assoc();
-            $stmt->close();;
-
+            $stmt->close();
+            ;
+            
             return $comment;
         } else {
             return false;
         }
     }
-	
-	public function updateCommnet($barId, $userId, $comment) {
-     $stmt = $this->conn->prepare("UPDATE comments SET commentText = ? where userid = ? and barId = ?");
-        $stmt->bind_param("ssi",  $comment, $userId, $barId);
+    
+    public function updateCommnet($barId, $userId, $comment)
+    {
+        $stmt = $this->conn->prepare("UPDATE comments SET commentText = ? where userid = ? and barId = ?");
+        $stmt->bind_param("ssi", $comment, $userId, $barId);
         $result = $stmt->execute();
         $stmt->close();
-
+        
         // check for successful store
         if ($result) {
             $stmt = $this->conn->prepare("SELECT * FROM comments WHERE barId = ? and userId= ? ");
@@ -81,30 +88,31 @@ class DB_Functions {
             $stmt->execute();
             $comment = $stmt->get_result()->fetch_assoc();
             $stmt->close();
-
+            
             return $comment;
         } else {
             return false;
         }
     }
-
+    
     /**
      * Get user by email and password
      */
-    public function getUserByEmailAndPassword($email, $password) {
- 
+    public function getUserByEmailAndPassword($email, $password)
+    {
+        
         $stmt = $this->conn->prepare("SELECT * FROM user WHERE email = ?");
- 
+        
         $stmt->bind_param("s", $email);
- 
+        
         if ($stmt->execute()) {
             $user = $stmt->get_result()->fetch_assoc();
             $stmt->close();
- 
+            
             // verifying user password
-            $salt = $user['salt'];
+            $salt               = $user['salt'];
             $encrypted_password = $user['uPassword'];
-            $hash = $this->checkhashSSHA($salt, $password);
+            $hash               = $this->checkhashSSHA($salt, $password);
             // check for password equality
             if ($encrypted_password == $hash) {
                 // user authentication details are correct
@@ -114,19 +122,87 @@ class DB_Functions {
             return NULL;
         }
     }
-
+    
+    /**
+     * Get All the Bars
+     */
+    public function getAllBars()
+    {
+        
+        $sql = "SELECT *FROM bars";
+        
+        $result = $this->conn->query($sql);
+       
+        if ($result->num_rows > 0) {
+			
+			$response["bars"] = array();
+            
+            // output data of each row
+            while ($row = $result->fetch_assoc()) {
+				$bars = array();
+                $bars["barId"]        = $row["barId"];
+                $bars["barName"]      = $row["barName"];
+                $bars["wheelchar"]    = $row["wheelChar"];
+                $bars["barLocation"]  = $row["barLocation"];
+                $bars["phoneNo"]      = $row["phoneNo"];
+                $bars["openingHours"] = $row["openingHours"];
+                $bars["pictureUrl"]   = $row["pictureUrl"];
+                $bars["barFBPage"]    = $row["barFBPage"];
+                $bars["average"]      = $row["average"];
+				
+				// push single product into final response array
+        array_push($response["bars"], $bars);
+            }
+		 return $response;
+        } else {
+            echo "0 results";
+        }
+    }
+	
+	 /**
+     * Get All the comments
+     */
+   
+    public function get_bar_comments($barId)
+    {
+        
+      $sql = "select u.fName, u.lName, c.commentText from user u, comments c where barId='$barId' and u.unique_id=c.userId";
+        
+        $result = $this->conn->query($sql);
+       
+        if ($result->num_rows > 0) {
+			
+			$response["comments"] = array();
+            
+            // output data of each row
+            while ($row = $result->fetch_assoc()) {
+				  $comments = array();
+        $comments["fName"] = $row["fName"];
+		$comments["lName"] = $row["lName"];
+		$comments["commentText"] = $row["commentText"];
+				
+		// push single product into final response array
+        array_push($response["comments"], $comments);
+            }
+		 return $response;
+        } else {
+            echo "0 results";
+        }
+    }
+    
     /**
      * Check user is existed or not
      */
-    public function isUserExisted($email) {
+    public function isUserExisted($email)
+    {
         $stmt = $this->conn->prepare("SELECT email from user WHERE email = ?");
-
+        
         $stmt->bind_param("s", $email);
-
+        
         $stmt->execute();
-
+        
         $stmt->store_result();
-
+        
         if ($stmt->num_rows > 0) {
             // user existed 
             $stmt->close();
@@ -137,17 +213,18 @@ class DB_Functions {
             return false;
         }
     }
-	
-	 public function isUserCommented($userId, $barId) {
+    
+    public function isUserCommented($userId, $barId)
+    {
         $stmt = $this->conn->prepare("SELECT userId from comments WHERE userId = ? and barId = ?");
-
+        
         $stmt->bind_param("si", $userId, $barId);
-		
-
+        
+        
         $stmt->execute();
-
+        
         $stmt->store_result();
-
+        
         if ($stmt->num_rows > 0) {
             // comment existed 
             $stmt->close();
@@ -158,17 +235,18 @@ class DB_Functions {
             return false;
         }
     }
-	
-	public function isUserRating($userId, $barId) {
+    
+    public function isUserRating($userId, $barId)
+    {
         $stmt = $this->conn->prepare("SELECT * from ratings WHERE userId = ? and barId = ?");
-
+        
         $stmt->bind_param("si", $userId, $barId);
-		
-
+        
+        
         $stmt->execute();
-
+        
         $stmt->store_result();
-
+        
         if ($stmt->num_rows > 0) {
             // comment existed 
             $stmt->close();
@@ -179,31 +257,32 @@ class DB_Functions {
             return false;
         }
     }
-	
-	public function updateRating($barId, $userId, $ratingNo) {
-			
-		$stmt = $this->conn->prepare("select ratingNo from ratings where userId=? and barId =?");
-        $stmt->bind_param("si", $userId, $barId );
-		$row[] = $stmt->execute();
-		$previous = $row['ratingNo'];
+    
+    public function updateRating($barId, $userId, $ratingNo)
+    {
+        
+        $stmt = $this->conn->prepare("select ratingNo from ratings where userId=? and barId =?");
+        $stmt->bind_param("si", $userId, $barId);
+        $row[]    = $stmt->execute();
+        $previous = $row['ratingNo'];
         $stmt->close();
-			
-		$stmt = $this->conn->prepare("update bars set numRatings = numRatings -1, totalRate = totalRate - ?, average=totalRate/numRatings where barId =?");
+        
+        $stmt = $this->conn->prepare("update bars set numRatings = numRatings -1, totalRate = totalRate - ?, average=totalRate/numRatings where barId =?");
         $stmt->bind_param("si", $previous, $barId);
         $result = $stmt->execute();
         $stmt->close();
-		
-		$stmt = $this->conn->prepare("update bars set numRatings = numRatings +1, totalRate = totalRate + ?, average=totalRate/numRatings where barId =?");
+        
+        $stmt = $this->conn->prepare("update bars set numRatings = numRatings +1, totalRate = totalRate + ?, average=totalRate/numRatings where barId =?");
         $stmt->bind_param("si", $ratingNo, $barId);
         $result = $stmt->execute();
         $stmt->close();
-			
-		$stmt = $this->conn->prepare("update ratings set ratingNo = ? where userId=? and barId =?");
-        $stmt->bind_param("ssi", $ratingNo, $userId, $barId );
+        
+        $stmt = $this->conn->prepare("update ratings set ratingNo = ? where userId=? and barId =?");
+        $stmt->bind_param("ssi", $ratingNo, $userId, $barId);
         $result = $stmt->execute();
         $stmt->close();
-		
-			
+        
+        
         // check for successful store
         if ($result) {
             $stmt = $this->conn->prepare("SELECT * FROM ratings WHERE barId = ? and userId= ? ");
@@ -216,61 +295,68 @@ class DB_Functions {
             return false;
         }
     }
-	public function storeRating($barId, $userId, $ratingNo) {	
-		$stmt = $this->conn->prepare("update bars set numRatings = numRatings +1, totalRate = totalRate + ?, average=totalRate/numRatings where barId =?");
+    public function storeRating($barId, $userId, $ratingNo)
+    {
+        $stmt = $this->conn->prepare("update bars set numRatings = numRatings +1, totalRate = totalRate + ?, average=totalRate/numRatings where barId =?");
         $stmt->bind_param("si", $ratingNo, $barId);
         $result = $stmt->execute();
         $stmt->close();
-		
-		$stmt = $this->conn->prepare("INSERT INTO ratings(barId, userId, ratingNo) VALUES(?, ?, ?)");
+        
+        $stmt = $this->conn->prepare("INSERT INTO ratings(barId, userId, ratingNo) VALUES(?, ?, ?)");
         $stmt->bind_param("iss", $barId, $userId, $ratingNo);
         $result = $stmt->execute();
         $stmt->close();
-
-
+        
+        
         // check for successful store
         if ($result) {
             $stmt = $this->conn->prepare("SELECT * FROM ratings WHERE barId = ? and userId= ? ");
             $stmt->bind_param("is", $barId, $userId);
             $stmt->execute();
             $comment = $stmt->get_result()->fetch_assoc();
-            $stmt->close();;
-
+            $stmt->close();
+            ;
+            
             return $comment;
         } else {
             return false;
-		}
-	}
-
+        }
+    }
+    
     /**
      * Encrypting password
      * @param password
      * returns salt and encrypted password
      */
-    public function hashSSHA($password) {
-
-        $salt = sha1(rand());
-        $salt = substr($salt, 0, 10);
+    public function hashSSHA($password)
+    {
+        
+        $salt      = sha1(rand());
+        $salt      = substr($salt, 0, 10);
         $encrypted = base64_encode(sha1($password . $salt, true) . $salt);
-        $hash = array("salt" => $salt, "encrypted" => $encrypted);
+        $hash      = array(
+            "salt" => $salt,
+            "encrypted" => $encrypted
+        );
         return $hash;
     }
-
+    
     /**
      * Decrypting password
      * @param salt, password
      * returns hash string
      */
-    public function checkhashSSHA($salt, $password) {
-
+    public function checkhashSSHA($salt, $password)
+    {
+        
         $hash = base64_encode(sha1($password . $salt, true) . $salt);
-
+        
         return $hash;
     }
-	
-	
-	
-
+    
+    
+    
+    
 }
 
 ?>

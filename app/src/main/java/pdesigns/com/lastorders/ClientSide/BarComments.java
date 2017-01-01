@@ -124,11 +124,10 @@ public class BarComments extends Fragment implements Serializable, OnClickListen
      * The Dbct.
      */
 
-    private ArrayList<Comments> mStrings = new ArrayList<Comments>();
+    private ArrayList<Comments> mStrings;
     // the url get all bars list, at the moment, its just running off local host, but can easily be changed to use an online server.
     private String url_all_comments;
     private CommentCustomListAdapter mAdapter;
-    private ArrayList<String> mSComments;
     private ArrayList<String> mNaames;
     private ListView simpleList = null;
 
@@ -234,48 +233,109 @@ public class BarComments extends Fragment implements Serializable, OnClickListen
         @Override
         protected String doInBackground(String... args) {
             // Building parameters
-            Log.d("doInBackground", "on the doInBackground part!!");
-            List<NameValuePair> params = new ArrayList<NameValuePair>();
-            try {
-                //getting json string from url
-                JSONObject jsonObject = jsonParser.makeHttpRequest(url_all_comments, "GET", params);
-                Log.d("BarCommentsbarid", url_all_comments + "");
-                // log information for the jspon responce
-                Log.d("BarComments All bars", jsonObject.toString());
-                // check for success tag
-                System.out.println("CONNNECTION --------------------------------------------------");
-                int success = jsonObject.getInt(TAG_SUCCESS);
-                System.out.println(success + "");
-                // the images was found
-                // Getting the array of the images
-                comments = jsonObject.getJSONArray(TAG_COMMENTS);
-                // time to loop through all the images
-                for (int i = 0; i < comments.length(); i++) {
-                    JSONObject c = comments.getJSONObject(i);
+            Log.d("doInBackground", "got to here");
 
-                    //Storing each json item in varible
-                    String fname = c.getString(TAG_FNAME);
-                    String lname = c.getString(TAG_LNAME);
-                    String commentsStuff = c.getString(TAG_COMMENTTEST);
-                    commentsObj = new Comments(fname, lname, commentsStuff);
-                    mStrings.add(i, commentsObj);
+            // Tag used to cancel the request
+            String tag_string_req = "req_post_comment";
+
+
+            StringRequest strReq = new StringRequest(Request.Method.POST,
+                    Server_Connections.URL_GET_ALL_COMMENTS, new Response.Listener<String>() {
+
+
+                @Override
+                public void onResponse(String response) {
+
+                    try {
+                        JSONObject jObj = new JSONObject(response);
+
+                        Log.d("Jsonobj", jObj.toString());
+
+                        boolean error = jObj.getBoolean("error");
+
+
+                        // Check for error node in json
+                        if (error == false) {
+                            // user successfully logged in
+                            // Create login session
+
+                         //   JSONObject comment = jObj.getJSONObject("comments");
+                            comments = jObj.getJSONArray("comments");
+                            for (int i = 0; i < comments.length(); i++) {
+                                JSONObject c = comments.getJSONObject(i);
+
+                                //Storing each json item in varible
+                                String fname = c.getString(TAG_FNAME);
+                                String lname = c.getString(TAG_LNAME);
+                                String commentsStuff = c.getString(TAG_COMMENTTEST);
+                                commentsObj = new Comments(fname, lname, commentsStuff);
+                                mStrings.add(i, commentsObj);
+                            }
+
+                            // dismiss the dialog after getting all products
+
+                            // updating UI from Background Thread
+                            // updating UI from Background Thread
+                            getActivity().runOnUiThread(
+                                    new Runnable() {
+                                        public void run() {
+                                            Log.d("mStrings", mStrings.toString());
+                                            mAdapter = new CommentCustomListAdapter(getActivity(), mStrings);
+                                            simpleList.setAdapter(mAdapter);
+                                        }
+                                    });
+
+                            Log.d("comment", comments.toString());
+
+                        } else {
+                            // Error in login. Get the error message
+                            String errorMsg = jObj.getString("error_msg");
+                            Toast.makeText(getContext(),
+                                    errorMsg, Toast.LENGTH_LONG).show();
+                        }
+                    } catch (JSONException e) {
+                        // JSON error
+                        e.printStackTrace();
+                        Toast.makeText(getContext(), "Json error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        // If you need update UI, simply do this:
+                        getActivity().runOnUiThread(new Runnable() {
+                            public void run() {
+                                // update your UI component here. in order to display friendly error report
+                                Toast.makeText(getContext(), R.string.server_is_down,
+                                        Toast.LENGTH_SHORT).show();
+                            }
+                        });
+
+
+                    }
+
+                }
+            }, new Response.ErrorListener() {
+
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    Toast.makeText(getContext(),
+                            error.getMessage(), Toast.LENGTH_LONG).show();
+                }
+            }) {
+
+                @Override
+                protected Map<String, String> getParams() {
+                    // Posting parameters to login url
+                    Map<String, String> params = new HashMap<String, String>();
+                    params.put("barId", barId + "");
+
+                    Log.d("Streng sent", params.toString());
+                    return params;
                 }
 
-            } catch (Exception e) {
+            };
+            Log.d("Sting reqsss", strReq.toString());
 
-
-                // If you need update UI, simply do this:
-                getActivity().runOnUiThread(new Runnable() {
-                    public void run() {
-                        // update your UI component here. in order to display friendly error report
-                        Toast.makeText(getActivity(), R.string.server_is_down,
-                                Toast.LENGTH_SHORT).show();
-                    }
-                });
-
-
-                // e.printStackTrace();
-            }
+            // Adding request to request queue
+            AppController.getInstance().addToRequestQueue(strReq, tag_string_req);
 
             return null;
         }
@@ -289,6 +349,7 @@ public class BarComments extends Fragment implements Serializable, OnClickListen
             getActivity().runOnUiThread(
                     new Runnable() {
                         public void run() {
+                            Log.d("mStrings", mStrings.toString());
                             mAdapter = new CommentCustomListAdapter(getActivity(), mStrings);
                             simpleList.setAdapter(mAdapter);
                         }

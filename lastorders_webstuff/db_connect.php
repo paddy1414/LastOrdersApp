@@ -45,6 +45,7 @@ class DB_CONNECT {
 	/**
      * Get user by email and password
      */
+	 
     public function getUserByEmailAndPassword($email, $password) {
 
         $stmt = $this->conn->prepare("SELECT * FROM users WHERE email = ?");

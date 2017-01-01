@@ -8,7 +8,7 @@ public class Server_Connections {
     /**
      * The constant for base Server
      */
-    public static String SERVER = "http://192.168.1.1/lastorders_webstuff/";
+    public static String SERVER = "http://192.168.1.4/lastorders_webstuff/";
 
     /**
      * The constant for Server user login url.
@@ -29,6 +29,9 @@ public class Server_Connections {
     public static String URL_POSTCOMMENT = SERVER + "post_comment.php";
 
     public static String URL_POSTRATING = SERVER + "post_rating.php";
+
+    public static String URL_GET_ALL_COMMENTS = SERVER + "get_all_comments2.php";
+
 
 }
  

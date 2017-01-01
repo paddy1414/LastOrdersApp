@@ -69,7 +69,7 @@ public class AroundYouFragment extends Fragment implements Serializable, Adapter
      */
     public static ArrayList<String> prgmFbs;
     // the url get all bars list, at the moment, its just running off local host, but can easily be changed to use an online server.
-    private static String url_all_bars = Server_Connections.SERVER + "get_all_bars.php";
+    private static String url_all_bars = Server_Connections.SERVER + "get_all_bars2.php";
     /**
      * The Json parser.
      */
